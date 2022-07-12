@@ -1,7 +1,10 @@
-# BitcoinJS (bitcoinjs-lib)
+This repository was forked from https://github.com/bitcoinjs/bitcoinjs-lib
+Conversion to Evrmore from bitcoin is just underway. Please volunteer if you are willing to help!
+
+# EvrmoreJS (bitcoinjs-lib)
 [![Github CI](https://github.com/bitcoinjs/bitcoinjs-lib/actions/workflows/main_ci.yml/badge.svg)](https://github.com/bitcoinjs/bitcoinjs-lib/actions/workflows/main_ci.yml) [![NPM](https://img.shields.io/npm/v/bitcoinjs-lib.svg)](https://www.npmjs.org/package/bitcoinjs-lib) [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
 
-A javascript Bitcoin library for node.js and browsers. Written in TypeScript, but committing the JS files to verify.
+A javascript Evrmore library for node.js and browsers. Written in TypeScript, but committing the JS files to verify.
 
 Released under the terms of the [MIT LICENSE](LICENSE).
 
@@ -76,7 +79,7 @@ We are not an authorative source of best practice, but, at the very least:
 
 
 ### Browser
-The recommended method of using `bitcoinjs-lib` in your browser is through [Browserify](https://github.com/substack/node-browserify).
+The recommended method of using `evrmorejs-lib` in your browser is through [Browserify](https://github.com/substack/node-browserify).
 If you're familiar with how to use browserify, ignore this and carry on, otherwise, it is recommended to read the tutorial at https://browserify.org/.
 
 **NOTE**: We use Node Maintenance LTS features, if you need strict ES5, use [`--transform babelify`](https://github.com/babel/babelify) in conjunction with your `browserify` step (using an [`es2015`](https://babeljs.io/docs/plugins/preset-es2015/) preset).
