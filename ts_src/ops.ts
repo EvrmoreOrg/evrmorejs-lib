@@ -1,4 +1,5 @@
 const OPS: { [key: string]: number } = {
+  // Push values
   OP_FALSE: 0,
   OP_0: 0,
   OP_PUSHDATA1: 76,
@@ -24,6 +25,7 @@ const OPS: { [key: string]: number } = {
   OP_15: 95,
   OP_16: 96,
 
+  // Control
   OP_NOP: 97,
   OP_VER: 98,
   OP_IF: 99,
@@ -35,6 +37,7 @@ const OPS: { [key: string]: number } = {
   OP_VERIFY: 105,
   OP_RETURN: 106,
 
+  // Stack operations
   OP_TOALTSTACK: 107,
   OP_FROMALTSTACK: 108,
   OP_2DROP: 109,
@@ -55,12 +58,14 @@ const OPS: { [key: string]: number } = {
   OP_SWAP: 124,
   OP_TUCK: 125,
 
+  // Splice operations
   OP_CAT: 126,
   OP_SUBSTR: 127,
   OP_LEFT: 128,
   OP_RIGHT: 129,
   OP_SIZE: 130,
 
+  // Bitwise logic
   OP_INVERT: 131,
   OP_AND: 132,
   OP_OR: 133,
@@ -70,6 +75,7 @@ const OPS: { [key: string]: number } = {
   OP_RESERVED1: 137,
   OP_RESERVED2: 138,
 
+  // Arithmetic
   OP_1ADD: 139,
   OP_1SUB: 140,
   OP_2MUL: 141,
@@ -86,6 +92,7 @@ const OPS: { [key: string]: number } = {
   OP_LSHIFT: 152,
   OP_RSHIFT: 153,
 
+  // Comparison
   OP_BOOLAND: 154,
   OP_BOOLOR: 155,
   OP_NUMEQUAL: 156,
@@ -100,6 +107,7 @@ const OPS: { [key: string]: number } = {
 
   OP_WITHIN: 165,
 
+  // Hashing
   OP_RIPEMD160: 166,
   OP_SHA1: 167,
   OP_SHA256: 168,
@@ -112,13 +120,10 @@ const OPS: { [key: string]: number } = {
   OP_CHECKMULTISIGVERIFY: 175,
 
   OP_NOP1: 176,
-
   OP_NOP2: 177,
   OP_CHECKLOCKTIMEVERIFY: 177,
-
   OP_NOP3: 178,
   OP_CHECKSEQUENCEVERIFY: 178,
-
   OP_NOP4: 179,
   OP_NOP5: 180,
   OP_NOP6: 181,
@@ -127,9 +132,14 @@ const OPS: { [key: string]: number } = {
   OP_NOP9: 184,
   OP_NOP10: 185,
 
+  OP_SMALLINTEGER: 250,
+  OP_PUBKEYS: 251,
   OP_PUBKEYHASH: 253,
   OP_PUBKEY: 254,
   OP_INVALIDOPCODE: 255,
+
+  // Evrmore specific
+  OP_EVR_ASSET: 192,
 };
 
 const REVERSE_OPS: { [key: number]: string } = {};
