@@ -1,6 +1,7 @@
 'use strict';
 Object.defineProperty(exports, '__esModule', { value: true });
-exports.encode = exports.decode = void 0;
+exports.decode = decode;
+exports.encode = encode;
 const bip66 = require('./bip66');
 const types = require('./types');
 const { typeforce } = types;
@@ -32,7 +33,6 @@ function decode(buffer) {
   const signature = Buffer.concat([r, s], 64);
   return { signature, hashType };
 }
-exports.decode = decode;
 function encode(signature, hashType) {
   typeforce(
     {
@@ -50,4 +50,3 @@ function encode(signature, hashType) {
   const s = toDER(signature.slice(32, 64));
   return Buffer.concat([bip66.encode(r, s), hashTypeBuffer]);
 }
-exports.encode = encode;

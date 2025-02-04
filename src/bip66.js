@@ -3,7 +3,9 @@
 // Format: 0x30 [total-length] 0x02 [R-length] [R] 0x02 [S-length] [S]
 // NOTE: SIGHASH byte ignored AND restricted, truncate before use
 Object.defineProperty(exports, '__esModule', { value: true });
-exports.encode = exports.decode = exports.check = void 0;
+exports.check = check;
+exports.decode = decode;
+exports.encode = encode;
 function check(buffer) {
   if (buffer.length < 8) return false;
   if (buffer.length > 72) return false;
@@ -24,7 +26,6 @@ function check(buffer) {
     return false;
   return true;
 }
-exports.check = check;
 function decode(buffer) {
   if (buffer.length < 8) throw new Error('DER sequence length is too short');
   if (buffer.length > 72) throw new Error('DER sequence length is too long');
@@ -51,7 +52,6 @@ function decode(buffer) {
     s: buffer.slice(6 + lenR),
   };
 }
-exports.decode = decode;
 /*
  * Expects r and s to be positive DER integers.
  *
@@ -99,4 +99,3 @@ function encode(r, s) {
   s.copy(signature, 6 + lenR);
   return signature;
 }
-exports.encode = encode;

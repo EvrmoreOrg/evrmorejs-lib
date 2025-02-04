@@ -1,6 +1,6 @@
 'use strict';
 Object.defineProperty(exports, '__esModule', { value: true });
-exports.p2sh = void 0;
+exports.p2sh = p2sh;
 const bcrypto = require('../crypto');
 const networks_1 = require('../networks');
 const bscript = require('../script');
@@ -44,7 +44,7 @@ function p2sh(a, opts) {
   );
   let network = a.network;
   if (!network) {
-    network = (a.redeem && a.redeem.network) || networks_1.bitcoin;
+    network = (a.redeem && a.redeem.network) || networks_1.evrmore;
   }
   const o = { network };
   const _address = lazy.value(() => {
@@ -186,4 +186,3 @@ function p2sh(a, opts) {
   }
   return Object.assign(o, a);
 }
-exports.p2sh = p2sh;

@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { Psbt as PsbtBase } from 'bip174';
 import { KeyValue, PsbtGlobalUpdate, PsbtInput, PsbtInputUpdate, PsbtOutput, PsbtOutputUpdate } from 'bip174/src/lib/interfaces';
 import { Network } from './networks';
@@ -18,7 +17,7 @@ export interface TransactionOutput {
 export interface PsbtTxOutput extends TransactionOutput {
     address: string | undefined;
 }
-export declare type ValidateSigFunction = (pubkey: Buffer, msghash: Buffer, signature: Buffer) => boolean;
+export type ValidateSigFunction = (pubkey: Buffer, msghash: Buffer, signature: Buffer) => boolean;
 /**
  * Psbt class can parse and generate a PSBT binary based off of the BIP174.
  * There are 6 roles that this class fulfills. (Explained in BIP174)
@@ -113,7 +112,7 @@ interface PsbtOptsOptional {
 }
 interface PsbtInputExtended extends PsbtInput, TransactionInput {
 }
-declare type PsbtOutputExtended = PsbtOutputExtendedAddress | PsbtOutputExtendedScript;
+type PsbtOutputExtended = PsbtOutputExtendedAddress | PsbtOutputExtendedScript;
 interface PsbtOutputExtendedAddress extends PsbtOutput {
     address: string;
     value: number;
@@ -169,7 +168,7 @@ export interface SignerAsync {
  *   ie. `Can not finalize input #${inputIndex}`
  * 2. Create the finalScriptSig and finalScriptWitness Buffers.
  */
-declare type FinalScriptsFunc = (inputIndex: number, // Which input is it?
+type FinalScriptsFunc = (inputIndex: number, // Which input is it?
 input: PsbtInput, // The PSBT input contents
 script: Buffer, // The "meaningful" locking script Buffer (redeemScript for P2SH etc.)
 isSegwit: boolean, // Is it segwit?
@@ -178,5 +177,5 @@ isP2WSH: boolean) => {
     finalScriptSig: Buffer | undefined;
     finalScriptWitness: Buffer | undefined;
 };
-declare type AllScriptType = 'witnesspubkeyhash' | 'pubkeyhash' | 'multisig' | 'pubkey' | 'nonstandard' | 'p2sh-witnesspubkeyhash' | 'p2sh-pubkeyhash' | 'p2sh-multisig' | 'p2sh-pubkey' | 'p2sh-nonstandard' | 'p2wsh-pubkeyhash' | 'p2wsh-multisig' | 'p2wsh-pubkey' | 'p2wsh-nonstandard' | 'p2sh-p2wsh-pubkeyhash' | 'p2sh-p2wsh-multisig' | 'p2sh-p2wsh-pubkey' | 'p2sh-p2wsh-nonstandard';
+type AllScriptType = 'witnesspubkeyhash' | 'pubkeyhash' | 'multisig' | 'pubkey' | 'nonstandard' | 'p2sh-witnesspubkeyhash' | 'p2sh-pubkeyhash' | 'p2sh-multisig' | 'p2sh-pubkey' | 'p2sh-nonstandard' | 'p2wsh-pubkeyhash' | 'p2wsh-multisig' | 'p2wsh-pubkey' | 'p2wsh-nonstandard' | 'p2sh-p2wsh-pubkeyhash' | 'p2sh-p2wsh-multisig' | 'p2sh-p2wsh-pubkey' | 'p2sh-p2wsh-nonstandard';
 export {};

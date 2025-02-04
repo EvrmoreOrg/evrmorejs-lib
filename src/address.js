@@ -1,6 +1,11 @@
 'use strict';
 Object.defineProperty(exports, '__esModule', { value: true });
-exports.toOutputScript = exports.fromOutputScript = exports.toBech32 = exports.toBase58Check = exports.fromBech32 = exports.fromBase58Check = void 0;
+exports.fromBase58Check = fromBase58Check;
+exports.fromBech32 = fromBech32;
+exports.toBase58Check = toBase58Check;
+exports.toBech32 = toBech32;
+exports.fromOutputScript = fromOutputScript;
+exports.toOutputScript = toOutputScript;
 const networks = require('./networks');
 const payments = require('./payments');
 const bscript = require('./script');
@@ -45,7 +50,6 @@ function fromBase58Check(address) {
   const hash = payload.slice(1);
   return { version, hash };
 }
-exports.fromBase58Check = fromBase58Check;
 function fromBech32(address) {
   let result;
   let version;
@@ -67,7 +71,6 @@ function fromBech32(address) {
     data: Buffer.from(data),
   };
 }
-exports.fromBech32 = fromBech32;
 function toBase58Check(hash, version) {
   typeforce(types.tuple(types.Hash160bit, types.UInt8), arguments);
   const payload = Buffer.allocUnsafe(21);
@@ -75,7 +78,6 @@ function toBase58Check(hash, version) {
   hash.copy(payload, 1);
   return bs58check.encode(payload);
 }
-exports.toBase58Check = toBase58Check;
 function toBech32(data, version, prefix) {
   const words = bech32_1.bech32.toWords(data);
   words.unshift(version);
@@ -83,7 +85,6 @@ function toBech32(data, version, prefix) {
     ? bech32_1.bech32.encode(prefix, words)
     : bech32_1.bech32m.encode(prefix, words);
 }
-exports.toBech32 = toBech32;
 function fromOutputScript(output, network) {
   // TODO: Network
   network = network || networks.bitcoin;
@@ -104,7 +105,6 @@ function fromOutputScript(output, network) {
   } catch (e) {}
   throw new Error(bscript.toASM(output) + ' has no matching Address');
 }
-exports.fromOutputScript = fromOutputScript;
 function toOutputScript(address, network) {
   network = network || networks.bitcoin;
   let decodeBase58;
@@ -145,4 +145,3 @@ function toOutputScript(address, network) {
   }
   throw new Error(address + ' has no matching Script');
 }
-exports.toOutputScript = toOutputScript;

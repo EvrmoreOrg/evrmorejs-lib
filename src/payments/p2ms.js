@@ -1,6 +1,6 @@
 'use strict';
 Object.defineProperty(exports, '__esModule', { value: true });
-exports.p2ms = void 0;
+exports.p2ms = p2ms;
 const networks_1 = require('../networks');
 const bscript = require('../script');
 const types_1 = require('../types');
@@ -46,7 +46,7 @@ function p2ms(a, opts) {
     },
     a,
   );
-  const network = a.network || networks_1.bitcoin;
+  const network = a.network || networks_1.evrmore;
   const o = { network };
   let chunks = [];
   let decoded = false;
@@ -147,4 +147,3 @@ function p2ms(a, opts) {
   }
   return Object.assign(o, a);
 }
-exports.p2ms = p2ms;

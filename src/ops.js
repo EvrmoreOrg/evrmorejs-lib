@@ -2,6 +2,7 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 exports.REVERSE_OPS = exports.OPS = void 0;
 const OPS = {
+  // Push values
   OP_FALSE: 0,
   OP_0: 0,
   OP_PUSHDATA1: 76,
@@ -26,6 +27,7 @@ const OPS = {
   OP_14: 94,
   OP_15: 95,
   OP_16: 96,
+  // Control
   OP_NOP: 97,
   OP_VER: 98,
   OP_IF: 99,
@@ -36,6 +38,7 @@ const OPS = {
   OP_ENDIF: 104,
   OP_VERIFY: 105,
   OP_RETURN: 106,
+  // Stack operations
   OP_TOALTSTACK: 107,
   OP_FROMALTSTACK: 108,
   OP_2DROP: 109,
@@ -55,11 +58,13 @@ const OPS = {
   OP_ROT: 123,
   OP_SWAP: 124,
   OP_TUCK: 125,
+  // Splice operations
   OP_CAT: 126,
   OP_SUBSTR: 127,
   OP_LEFT: 128,
   OP_RIGHT: 129,
   OP_SIZE: 130,
+  // Bitwise logic
   OP_INVERT: 131,
   OP_AND: 132,
   OP_OR: 133,
@@ -68,6 +73,7 @@ const OPS = {
   OP_EQUALVERIFY: 136,
   OP_RESERVED1: 137,
   OP_RESERVED2: 138,
+  // Arithmetic
   OP_1ADD: 139,
   OP_1SUB: 140,
   OP_2MUL: 141,
@@ -83,6 +89,7 @@ const OPS = {
   OP_MOD: 151,
   OP_LSHIFT: 152,
   OP_RSHIFT: 153,
+  // Comparison
   OP_BOOLAND: 154,
   OP_BOOLOR: 155,
   OP_NUMEQUAL: 156,
@@ -95,6 +102,7 @@ const OPS = {
   OP_MIN: 163,
   OP_MAX: 164,
   OP_WITHIN: 165,
+  // Hashing
   OP_RIPEMD160: 166,
   OP_SHA1: 167,
   OP_SHA256: 168,
@@ -117,9 +125,13 @@ const OPS = {
   OP_NOP8: 183,
   OP_NOP9: 184,
   OP_NOP10: 185,
+  OP_SMALLINTEGER: 250,
+  OP_PUBKEYS: 251,
   OP_PUBKEYHASH: 253,
   OP_PUBKEY: 254,
   OP_INVALIDOPCODE: 255,
+  // Evrmore specific
+  OP_EVR_ASSET: 192,
 };
 exports.OPS = OPS;
 const REVERSE_OPS = {};

@@ -1,11 +1,12 @@
 'use strict';
 Object.defineProperty(exports, '__esModule', { value: true });
-exports.decode = exports.encode = exports.encodingLength = void 0;
+exports.encodingLength = encodingLength;
+exports.encode = encode;
+exports.decode = decode;
 const ops_1 = require('./ops');
 function encodingLength(i) {
   return i < ops_1.OPS.OP_PUSHDATA1 ? 1 : i <= 0xff ? 2 : i <= 0xffff ? 3 : 5;
 }
-exports.encodingLength = encodingLength;
 function encode(buffer, num, offset) {
   const size = encodingLength(num);
   // ~6 bit
@@ -26,7 +27,6 @@ function encode(buffer, num, offset) {
   }
   return size;
 }
-exports.encode = encode;
 function decode(buffer, offset) {
   const opcode = buffer.readUInt8(offset);
   let num;
@@ -58,4 +58,3 @@ function decode(buffer, offset) {
     size,
   };
 }
-exports.decode = decode;

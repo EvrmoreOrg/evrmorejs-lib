@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { OPS } from './ops';
 import { Stack } from './payments';
 import * as scriptNumber from './script_number';

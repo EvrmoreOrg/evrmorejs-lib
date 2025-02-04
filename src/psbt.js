@@ -60,6 +60,20 @@ const DEFAULT_OPTS = {
  *   Transaction object. Such as fee rate not being larger than maximumFeeRate etc.
  */
 class Psbt {
+  static fromBase64(data, opts = {}) {
+    const buffer = Buffer.from(data, 'base64');
+    return this.fromBuffer(buffer, opts);
+  }
+  static fromHex(data, opts = {}) {
+    const buffer = Buffer.from(data, 'hex');
+    return this.fromBuffer(buffer, opts);
+  }
+  static fromBuffer(buffer, opts = {}) {
+    const psbtBase = bip174_1.Psbt.fromBuffer(buffer, transactionFromBuffer);
+    const psbt = new Psbt(opts, psbtBase);
+    checkTxForDupeIns(psbt.__CACHE.__TX, psbt.__CACHE);
+    return psbt;
+  }
   constructor(opts = {}, data = new bip174_1.Psbt(new PsbtTransaction())) {
     this.data = data;
     // set defaults
@@ -88,20 +102,6 @@ class Psbt {
       });
     dpew(this, '__CACHE', false, true);
     dpew(this, 'opts', false, true);
-  }
-  static fromBase64(data, opts = {}) {
-    const buffer = Buffer.from(data, 'base64');
-    return this.fromBuffer(buffer, opts);
-  }
-  static fromHex(data, opts = {}) {
-    const buffer = Buffer.from(data, 'hex');
-    return this.fromBuffer(buffer, opts);
-  }
-  static fromBuffer(buffer, opts = {}) {
-    const psbtBase = bip174_1.Psbt.fromBuffer(buffer, transactionFromBuffer);
-    const psbt = new Psbt(opts, psbtBase);
-    checkTxForDupeIns(psbt.__CACHE.__TX, psbt.__CACHE);
-    return psbt;
   }
   get inputCount() {
     return this.data.inputs.length;

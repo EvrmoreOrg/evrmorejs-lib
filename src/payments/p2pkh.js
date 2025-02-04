@@ -1,6 +1,6 @@
 'use strict';
 Object.defineProperty(exports, '__esModule', { value: true });
-exports.p2pkh = void 0;
+exports.p2pkh = p2pkh;
 const bcrypto = require('../crypto');
 const networks_1 = require('../networks');
 const bscript = require('../script');
@@ -35,7 +35,7 @@ function p2pkh(a, opts) {
   const _chunks = lazy.value(() => {
     return bscript.decompile(a.input);
   });
-  const network = a.network || networks_1.bitcoin;
+  const network = a.network || networks_1.evrmore;
   const o = { name: 'p2pkh', network };
   lazy.prop(o, 'address', () => {
     if (!o.hash) return;
@@ -129,4 +129,3 @@ function p2pkh(a, opts) {
   }
   return Object.assign(o, a);
 }
-exports.p2pkh = p2pkh;

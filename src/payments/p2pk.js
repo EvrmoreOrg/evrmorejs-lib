@@ -1,6 +1,6 @@
 'use strict';
 Object.defineProperty(exports, '__esModule', { value: true });
-exports.p2pk = void 0;
+exports.p2pk = p2pk;
 const networks_1 = require('../networks');
 const bscript = require('../script');
 const types_1 = require('../types');
@@ -25,7 +25,7 @@ function p2pk(a, opts) {
   const _chunks = lazy.value(() => {
     return bscript.decompile(a.input);
   });
-  const network = a.network || networks_1.bitcoin;
+  const network = a.network || networks_1.evrmore;
   const o = { name: 'p2pk', network };
   lazy.prop(o, 'output', () => {
     if (!a.pubkey) return;
@@ -69,4 +69,3 @@ function p2pk(a, opts) {
   }
   return Object.assign(o, a);
 }
-exports.p2pk = p2pk;
