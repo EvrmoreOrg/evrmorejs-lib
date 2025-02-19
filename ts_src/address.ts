@@ -117,7 +117,7 @@ export function toBech32(
 
 export function fromOutputScript(output: Buffer, network?: Network): string {
   // TODO: Network
-  network = network || networks.bitcoin;
+  network = network || networks.evrmore;
 
   try {
     return payments.p2pkh({ output, network }).address as string;
@@ -138,8 +138,12 @@ export function fromOutputScript(output: Buffer, network?: Network): string {
   throw new Error(bscript.toASM(output) + ' has no matching Address');
 }
 
-export function toOutputScript(address: string, network?: Network): Buffer {
-  network = network || networks.bitcoin;
+export function toOutputScript(
+  address: string,
+  network?: Network,
+  asset?: { name: string; amount: number },
+): Buffer {
+  network = network || networks.evrmore;
 
   let decodeBase58: Base58CheckResult | undefined;
   let decodeBech32: Bech32Result | undefined;
@@ -149,9 +153,10 @@ export function toOutputScript(address: string, network?: Network): Buffer {
 
   if (decodeBase58) {
     if (decodeBase58.version === network.pubKeyHash)
-      return payments.p2pkh({ hash: decodeBase58.hash }).output as Buffer;
+      return payments.p2pkh({ hash: decodeBase58.hash, asset })
+        .output as Buffer;
     if (decodeBase58.version === network.scriptHash)
-      return payments.p2sh({ hash: decodeBase58.hash }).output as Buffer;
+      return payments.p2sh({ hash: decodeBase58.hash, asset }).output as Buffer;
   } else {
     try {
       decodeBech32 = fromBech32(address);

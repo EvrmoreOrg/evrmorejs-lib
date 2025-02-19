@@ -19,13 +19,13 @@ const DEFAULT_OPTS = {
    * A bitcoinjs Network object. This is only used if you pass an `address`
    * parameter to addOutput. Otherwise it is not needed and can be left default.
    */
-  network: networks_1.bitcoin,
+  network: networks_1.evrmore,
   /**
    * When extractTransaction is called, the fee rate is checked.
    * THIS IS NOT TO BE RELIED ON.
    * It is only here as a last ditch effort to prevent sending a 500 BTC fee etc.
    */
-  maximumFeeRate: 5000, // satoshi per byte
+  maximumFeeRate: 2000, // satoshi per byte
 };
 /**
  * Psbt class can parse and generate a PSBT binary based off of the BIP174.
@@ -231,10 +231,10 @@ class Psbt {
       );
     }
     checkInputsForPartialSig(this.data.inputs, 'addOutput');
-    const { address } = outputData;
+    const { address, asset } = outputData;
     if (typeof address === 'string') {
       const { network } = this.opts;
-      const script = (0, address_1.toOutputScript)(address, network);
+      const script = (0, address_1.toOutputScript)(address, network, asset);
       outputData = Object.assign(outputData, { script });
     }
     const c = this.__CACHE;
@@ -651,7 +651,7 @@ class PsbtTransaction {
         : input.hash;
     this.tx.addInput(hash, input.index, input.sequence);
   }
-  addOutput(output) {
+  addOutput(output, asset) {
     if (
       output.script === undefined ||
       output.value === undefined ||
@@ -660,7 +660,11 @@ class PsbtTransaction {
     ) {
       throw new Error('Error adding output.');
     }
-    this.tx.addOutput(output.script, output.value);
+    if (asset) {
+      this.tx.addOutput(output.script, output.value, asset);
+    } else {
+      this.tx.addOutput(output.script, output.value);
+    }
   }
   toBuffer() {
     return this.tx.toBuffer();

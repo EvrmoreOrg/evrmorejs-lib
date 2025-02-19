@@ -50,6 +50,7 @@ function isOutput(out: Output): boolean {
 export interface Output {
   script: Buffer;
   value: number;
+  asset?: { name: string; amount: number };
 }
 
 export interface Input {
@@ -184,9 +185,22 @@ export class Transaction {
     );
   }
 
-  addOutput(scriptPubKey: Buffer, value: number): number {
+  addOutput(
+    scriptPubKey: Buffer,
+    value: number,
+    asset?: { name: string; amount: number },
+  ): number {
     typeforce(types.tuple(types.Buffer, types.Satoshi), arguments);
 
+    if (asset) {
+      const assetScript = this.createAssetScript(scriptPubKey, asset);
+      return (
+        this.outs.push({
+          script: assetScript,
+          value: 0,
+        }) - 1
+      );
+    }
     // Add the output and return the output's index
     return (
       this.outs.push({
@@ -194,6 +208,26 @@ export class Transaction {
         value,
       }) - 1
     );
+  }
+
+  private createAssetScript(
+    scriptPubKey: Buffer,
+    asset: { name: string; amount: number },
+  ): Buffer {
+    const assetData = Buffer.concat([
+      Buffer.from([0x13]),
+      Buffer.from('65767274', 'hex'),
+      Buffer.from(asset.name, 'utf8'),
+      Buffer.from(asset.amount.toString(), 'utf8'),
+    ]);
+
+    // Construct the asset script with custom opcodes
+    return Buffer.concat([
+      scriptPubKey,
+      Buffer.from([opcodes.OP_EVR_ASSET]),
+      assetData,
+      Buffer.from([opcodes.OP_DROP]),
+    ]);
   }
 
   hasWitnesses(): boolean {

@@ -116,10 +116,18 @@ type PsbtOutputExtended = PsbtOutputExtendedAddress | PsbtOutputExtendedScript;
 interface PsbtOutputExtendedAddress extends PsbtOutput {
     address: string;
     value: number;
+    asset?: {
+        name: string;
+        amount: number;
+    };
 }
 interface PsbtOutputExtendedScript extends PsbtOutput {
     script: Buffer;
     value: number;
+    asset?: {
+        name: string;
+        amount: number;
+    };
 }
 interface HDSignerBase {
     /**
