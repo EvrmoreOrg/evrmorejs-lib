@@ -29,3 +29,5 @@ export {
   StackElement,
 } from './payments';
 export { Input as TxInput, Output as TxOutput } from './transaction';
+
+export { createTx, selectUtxos } from './compile';

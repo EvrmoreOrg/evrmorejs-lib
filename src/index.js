@@ -1,6 +1,6 @@
 'use strict';
 Object.defineProperty(exports, '__esModule', { value: true });
-exports.Transaction = exports.opcodes = exports.Psbt = exports.Block = exports.script = exports.payments = exports.networks = exports.crypto = exports.address = void 0;
+exports.selectUtxos = exports.createTx = exports.Transaction = exports.opcodes = exports.Psbt = exports.Block = exports.script = exports.payments = exports.networks = exports.crypto = exports.address = void 0;
 const address = require('./address');
 exports.address = address;
 const crypto = require('./crypto');
@@ -37,5 +37,18 @@ Object.defineProperty(exports, 'Transaction', {
   enumerable: true,
   get: function() {
     return transaction_1.Transaction;
+  },
+});
+var compile_1 = require('./compile');
+Object.defineProperty(exports, 'createTx', {
+  enumerable: true,
+  get: function() {
+    return compile_1.createTx;
+  },
+});
+Object.defineProperty(exports, 'selectUtxos', {
+  enumerable: true,
+  get: function() {
+    return compile_1.selectUtxos;
   },
 });
