@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
-import { crypto as bcrypto, TaggedHashPrefix } from '..';
+import { crypto as bcrypto, TaggedHashPrefix } from '../src';
 import * as fixtures from './fixtures/crypto.json';
 
 describe('crypto', () => {
