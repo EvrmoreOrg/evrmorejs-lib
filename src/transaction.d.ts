@@ -1,7 +1,10 @@
-/// <reference types="node" />
 export interface Output {
     script: Buffer;
     value: number;
+    asset?: {
+        name: string;
+        amount: number;
+    };
 }
 export interface Input {
     hash: Buffer;
@@ -30,7 +33,11 @@ export declare class Transaction {
     outs: Output[];
     isCoinbase(): boolean;
     addInput(hash: Buffer, index: number, sequence?: number, scriptSig?: Buffer): number;
-    addOutput(scriptPubKey: Buffer, value: number): number;
+    addOutput(scriptPubKey: Buffer, value: number, asset?: {
+        name: string;
+        amount: number;
+    }): number;
+    private createAssetScript;
     hasWitnesses(): boolean;
     weight(): number;
     virtualSize(): number;

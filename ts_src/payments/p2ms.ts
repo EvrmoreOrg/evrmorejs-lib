@@ -1,11 +1,11 @@
-import { bitcoin as BITCOIN_NETWORK } from '../networks';
+import { evrmore as EVREMORE_NETWORK } from '../networks';
 import * as bscript from '../script';
 import { isPoint, typeforce as typef } from '../types';
 import { Payment, PaymentOpts, Stack } from './index';
 import * as lazy from './lazy';
 const OPS = bscript.OPS;
 
-const OP_INT_BASE = OPS.OP_RESERVED; // OP_1 - 1
+const OP_INT_BASE = OPS.OP_RESERVED;
 
 function stacksEqual(a: Buffer[], b: Buffer[]): boolean {
   if (a.length !== b.length) return false;
@@ -16,17 +16,17 @@ function stacksEqual(a: Buffer[], b: Buffer[]): boolean {
 }
 
 // input: OP_0 [signatures ...]
-// output: m [pubKeys ...] n OP_CHECKMULTISIG
+// output: m [pubKeys ...] n OP_CHECKMULTISIG [OP_EVR_ASSET, {asset metadata}]
 export function p2ms(a: Payment, opts?: PaymentOpts): Payment {
   if (
     !a.input &&
     !a.output &&
     !(a.pubkeys && a.m !== undefined) &&
-    !a.signatures
+    !a.signatures &&
+    !a.asset
   )
     throw new TypeError('Not enough data');
   opts = Object.assign({ validate: true }, opts || {});
-
   function isAcceptableSignature(x: Buffer | number): boolean {
     return (
       bscript.isCanonicalScriptSignature(x as Buffer) ||
@@ -44,11 +44,12 @@ export function p2ms(a: Payment, opts?: PaymentOpts): Payment {
 
       signatures: typef.maybe(typef.arrayOf(isAcceptableSignature)),
       input: typef.maybe(typef.Buffer),
+      asset: typef.maybe(typef.Object),
     },
     a,
   );
 
-  const network = a.network || BITCOIN_NETWORK;
+  const network = a.network || EVREMORE_NETWORK;
   const o: Payment = { network };
 
   let chunks: Stack = [];
@@ -66,6 +67,33 @@ export function p2ms(a: Payment, opts?: PaymentOpts): Payment {
     if (!a.m) return;
     if (!o.n) return;
     if (!a.pubkeys) return;
+    const baseOutput = [
+      OPS.OP_RESERVED,
+      OP_INT_BASE + a.m,
+      ...a.pubkeys,
+      OP_INT_BASE + o.n,
+      OPS.OP_CHECKMULTISIG,
+    ];
+    if (a.asset) {
+      const assetData = Buffer.concat([
+        Buffer.from([0x13]),
+        Buffer.from('65767274', 'hex'),
+        Buffer.from([a.asset.name.length]),
+        Buffer.from(a.asset.name, 'utf8'),
+        (() => {
+          const buffer = Buffer.alloc(8);
+          buffer.writeBigUInt64LE(BigInt(a.asset.amount));
+          return buffer;
+        })(),
+      ]);
+
+      return bscript.compile([
+        ...baseOutput,
+        OPS.OP_EVR_ASSET,
+        assetData,
+        OPS.OP_DROP,
+      ]);
+    }
     return bscript.compile(
       ([] as Stack).concat(
         OP_INT_BASE + a.m,
@@ -106,7 +134,6 @@ export function p2ms(a: Payment, opts?: PaymentOpts): Payment {
     return `p2ms(${o.m} of ${o.n})`;
   });
 
-  // extended validation
   if (opts.validate) {
     if (a.output) {
       decode(a.output);

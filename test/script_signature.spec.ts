@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
-import { signature as bscriptSig } from '../src/script';
-import * as fixtures from './fixtures/signature.json';
+import { signature as evrmoreScriptSig } from '../src/script';
+import fixtures from './fixtures/script_signature.json';
 
 describe('Script Signatures', () => {
   function fromRaw(signature: { r: string; s: string }): Buffer {
@@ -26,7 +26,7 @@ describe('Script Signatures', () => {
   describe('encode', () => {
     fixtures.valid.forEach(f => {
       it('encodes ' + f.hex, () => {
-        const buffer = bscriptSig.encode(fromRaw(f.raw), f.hashType);
+        const buffer = evrmoreScriptSig.encode(fromRaw(f.raw), f.hashType);
 
         assert.strictEqual(buffer.toString('hex'), f.hex);
       });
@@ -39,7 +39,7 @@ describe('Script Signatures', () => {
         const signature = fromRaw(f.raw);
 
         assert.throws(() => {
-          bscriptSig.encode(signature, f.hashType);
+          evrmoreScriptSig.encode(signature, f.hashType);
         }, new RegExp(f.exception));
       });
     });
@@ -48,7 +48,7 @@ describe('Script Signatures', () => {
   describe('decode', () => {
     fixtures.valid.forEach(f => {
       it('decodes ' + f.hex, () => {
-        const decode = bscriptSig.decode(Buffer.from(f.hex, 'hex'));
+        const decode = evrmoreScriptSig.decode(Buffer.from(f.hex, 'hex'));
 
         assert.deepStrictEqual(toRaw(decode.signature), f.raw);
         assert.strictEqual(decode.hashType, f.hashType);
@@ -60,7 +60,7 @@ describe('Script Signatures', () => {
         const buffer = Buffer.from(f.hex, 'hex');
 
         assert.throws(() => {
-          bscriptSig.decode(buffer);
+          evrmoreScriptSig.decode(buffer);
         }, new RegExp(f.exception));
       });
     });

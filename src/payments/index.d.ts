@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { Network } from '../networks';
 import { p2data as embed } from './embed';
 import { p2ms } from './p2ms';
@@ -23,14 +22,19 @@ export interface Payment {
     hash?: Buffer;
     redeem?: Payment;
     witness?: Buffer[];
+    asset?: {
+        name: string;
+        amount: number;
+        protocolVersion?: number;
+    };
 }
-export declare type PaymentCreator = (a: Payment, opts?: PaymentOpts) => Payment;
-export declare type PaymentFunction = () => Payment;
+export type PaymentCreator = (a: Payment, opts?: PaymentOpts) => Payment;
+export type PaymentFunction = () => Payment;
 export interface PaymentOpts {
     validate?: boolean;
     allowIncomplete?: boolean;
 }
-export declare type StackElement = Buffer | number;
-export declare type Stack = StackElement[];
-export declare type StackFunction = () => Stack;
+export type StackElement = Buffer | number;
+export type Stack = StackElement[];
+export type StackFunction = () => Stack;
 export { embed, p2ms, p2pk, p2pkh, p2sh, p2wpkh, p2wsh };

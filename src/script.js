@@ -1,6 +1,15 @@
 'use strict';
 Object.defineProperty(exports, '__esModule', { value: true });
-exports.signature = exports.number = exports.isCanonicalScriptSignature = exports.isDefinedHashType = exports.isCanonicalPubKey = exports.toStack = exports.fromASM = exports.toASM = exports.decompile = exports.compile = exports.isPushOnly = exports.OPS = void 0;
+exports.signature = exports.number = exports.OPS = void 0;
+exports.isPushOnly = isPushOnly;
+exports.compile = compile;
+exports.decompile = decompile;
+exports.toASM = toASM;
+exports.fromASM = fromASM;
+exports.toStack = toStack;
+exports.isCanonicalPubKey = isCanonicalPubKey;
+exports.isDefinedHashType = isDefinedHashType;
+exports.isCanonicalScriptSignature = isCanonicalScriptSignature;
 const bip66 = require('./bip66');
 const ops_1 = require('./ops');
 Object.defineProperty(exports, 'OPS', {
@@ -29,7 +38,6 @@ function isPushOnlyChunk(value) {
 function isPushOnly(value) {
   return types.Array(value) && value.every(isPushOnlyChunk);
 }
-exports.isPushOnly = isPushOnly;
 function asMinimalOP(buffer) {
   if (buffer.length === 0) return ops_1.OPS.OP_0;
   if (buffer.length !== 1) return;
@@ -85,7 +93,6 @@ function compile(chunks) {
   if (offset !== buffer.length) throw new Error('Could not decode chunks');
   return buffer;
 }
-exports.compile = compile;
 function decompile(buffer) {
   // TODO: remove me
   if (chunksIsArray(buffer)) return buffer;
@@ -119,7 +126,6 @@ function decompile(buffer) {
   }
   return chunks;
 }
-exports.decompile = decompile;
 function toASM(chunks) {
   if (chunksIsBuffer(chunks)) {
     chunks = decompile(chunks);
@@ -137,7 +143,6 @@ function toASM(chunks) {
     })
     .join(' ');
 }
-exports.toASM = toASM;
 function fromASM(asm) {
   typeforce(types.String, asm);
   return compile(
@@ -150,7 +155,6 @@ function fromASM(asm) {
     }),
   );
 }
-exports.fromASM = fromASM;
 function toStack(chunks) {
   chunks = decompile(chunks);
   typeforce(isPushOnly, chunks);
@@ -160,23 +164,19 @@ function toStack(chunks) {
     return scriptNumber.encode(op - OP_INT_BASE);
   });
 }
-exports.toStack = toStack;
 function isCanonicalPubKey(buffer) {
   return types.isPoint(buffer);
 }
-exports.isCanonicalPubKey = isCanonicalPubKey;
 function isDefinedHashType(hashType) {
   const hashTypeMod = hashType & ~0x80;
   // return hashTypeMod > SIGHASH_ALL && hashTypeMod < SIGHASH_SINGLE
   return hashTypeMod > 0x00 && hashTypeMod < 0x04;
 }
-exports.isDefinedHashType = isDefinedHashType;
 function isCanonicalScriptSignature(buffer) {
   if (!Buffer.isBuffer(buffer)) return false;
   if (!isDefinedHashType(buffer[buffer.length - 1])) return false;
   return bip66.check(buffer.slice(0, -1));
 }
-exports.isCanonicalScriptSignature = isCanonicalScriptSignature;
 // tslint:disable-next-line variable-name
 exports.number = scriptNumber;
 exports.signature = scriptSignature;

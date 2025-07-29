@@ -1,6 +1,10 @@
 'use strict';
 Object.defineProperty(exports, '__esModule', { value: true });
-exports.BufferReader = exports.BufferWriter = exports.cloneBuffer = exports.reverseBuffer = exports.writeUInt64LE = exports.readUInt64LE = exports.varuint = void 0;
+exports.BufferReader = exports.BufferWriter = exports.varuint = void 0;
+exports.readUInt64LE = readUInt64LE;
+exports.writeUInt64LE = writeUInt64LE;
+exports.reverseBuffer = reverseBuffer;
+exports.cloneBuffer = cloneBuffer;
 const types = require('./types');
 const { typeforce } = types;
 const varuint = require('varuint-bitcoin');
@@ -22,14 +26,12 @@ function readUInt64LE(buffer, offset) {
   verifuint(b + a, 0x001fffffffffffff);
   return b + a;
 }
-exports.readUInt64LE = readUInt64LE;
 function writeUInt64LE(buffer, value, offset) {
   verifuint(value, 0x001fffffffffffff);
   buffer.writeInt32LE(value & -1, offset);
   buffer.writeUInt32LE(Math.floor(value / 0x100000000), offset + 4);
   return offset + 8;
 }
-exports.writeUInt64LE = writeUInt64LE;
 function reverseBuffer(buffer) {
   if (buffer.length < 1) return buffer;
   let j = buffer.length - 1;
@@ -42,24 +44,22 @@ function reverseBuffer(buffer) {
   }
   return buffer;
 }
-exports.reverseBuffer = reverseBuffer;
 function cloneBuffer(buffer) {
   const clone = Buffer.allocUnsafe(buffer.length);
   buffer.copy(clone);
   return clone;
 }
-exports.cloneBuffer = cloneBuffer;
 /**
  * Helper class for serialization of bitcoin data types into a pre-allocated buffer.
  */
 class BufferWriter {
+  static withCapacity(size) {
+    return new BufferWriter(Buffer.alloc(size));
+  }
   constructor(buffer, offset = 0) {
     this.buffer = buffer;
     this.offset = offset;
     typeforce(types.tuple(types.Buffer, types.UInt32), [buffer, offset]);
-  }
-  static withCapacity(size) {
-    return new BufferWriter(Buffer.alloc(size));
   }
   writeUInt8(i) {
     this.offset = this.buffer.writeUInt8(i, this.offset);

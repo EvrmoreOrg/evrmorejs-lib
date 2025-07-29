@@ -23,6 +23,7 @@ export interface Payment {
   hash?: Buffer;
   redeem?: Payment;
   witness?: Buffer[];
+  asset?: { name: string; amount: number; protocolVersion?: number };
 }
 
 export type PaymentCreator = (a: Payment, opts?: PaymentOpts) => Payment;

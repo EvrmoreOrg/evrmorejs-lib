@@ -11,6 +11,7 @@ const networks_1 = require('./networks');
 const payments = require('./payments');
 const bscript = require('./script');
 const transaction_1 = require('./transaction');
+const script_1 = require('./script');
 /**
  * These are the default arguments for a Psbt instance.
  */
@@ -19,13 +20,13 @@ const DEFAULT_OPTS = {
    * A bitcoinjs Network object. This is only used if you pass an `address`
    * parameter to addOutput. Otherwise it is not needed and can be left default.
    */
-  network: networks_1.bitcoin,
+  network: networks_1.evrmore,
   /**
    * When extractTransaction is called, the fee rate is checked.
    * THIS IS NOT TO BE RELIED ON.
    * It is only here as a last ditch effort to prevent sending a 500 BTC fee etc.
    */
-  maximumFeeRate: 5000, // satoshi per byte
+  maximumFeeRate: 2000, // satoshi per byte
 };
 /**
  * Psbt class can parse and generate a PSBT binary based off of the BIP174.
@@ -60,6 +61,20 @@ const DEFAULT_OPTS = {
  *   Transaction object. Such as fee rate not being larger than maximumFeeRate etc.
  */
 class Psbt {
+  static fromBase64(data, opts = {}) {
+    const buffer = Buffer.from(data, 'base64');
+    return this.fromBuffer(buffer, opts);
+  }
+  static fromHex(data, opts = {}) {
+    const buffer = Buffer.from(data, 'hex');
+    return this.fromBuffer(buffer, opts);
+  }
+  static fromBuffer(buffer, opts = {}) {
+    const psbtBase = bip174_1.Psbt.fromBuffer(buffer, transactionFromBuffer);
+    const psbt = new Psbt(opts, psbtBase);
+    checkTxForDupeIns(psbt.__CACHE.__TX, psbt.__CACHE);
+    return psbt;
+  }
   constructor(opts = {}, data = new bip174_1.Psbt(new PsbtTransaction())) {
     this.data = data;
     // set defaults
@@ -88,20 +103,6 @@ class Psbt {
       });
     dpew(this, '__CACHE', false, true);
     dpew(this, 'opts', false, true);
-  }
-  static fromBase64(data, opts = {}) {
-    const buffer = Buffer.from(data, 'base64');
-    return this.fromBuffer(buffer, opts);
-  }
-  static fromHex(data, opts = {}) {
-    const buffer = Buffer.from(data, 'hex');
-    return this.fromBuffer(buffer, opts);
-  }
-  static fromBuffer(buffer, opts = {}) {
-    const psbtBase = bip174_1.Psbt.fromBuffer(buffer, transactionFromBuffer);
-    const psbt = new Psbt(opts, psbtBase);
-    checkTxForDupeIns(psbt.__CACHE.__TX, psbt.__CACHE);
-    return psbt;
   }
   get inputCount() {
     return this.data.inputs.length;
@@ -231,10 +232,10 @@ class Psbt {
       );
     }
     checkInputsForPartialSig(this.data.inputs, 'addOutput');
-    const { address } = outputData;
+    const { address, asset } = outputData;
     if (typeof address === 'string') {
       const { network } = this.opts;
-      const script = (0, address_1.toOutputScript)(address, network);
+      const script = (0, address_1.toOutputScript)(address, network, asset);
       outputData = Object.assign(outputData, { script });
     }
     const c = this.__CACHE;
@@ -651,7 +652,7 @@ class PsbtTransaction {
         : input.hash;
     this.tx.addInput(hash, input.index, input.sequence);
   }
-  addOutput(output) {
+  addOutput(output, asset) {
     if (
       output.script === undefined ||
       output.value === undefined ||
@@ -660,7 +661,11 @@ class PsbtTransaction {
     ) {
       throw new Error('Error adding output.');
     }
-    this.tx.addOutput(output.script, output.value);
+    if (asset) {
+      this.tx.addOutput(output.script, output.value, asset);
+    } else {
+      this.tx.addOutput(output.script, output.value);
+    }
   }
   toBuffer() {
     return this.tx.toBuffer();
@@ -832,10 +837,24 @@ function scriptCheckerFactory(payment, paymentScriptName) {
     const redeemScriptOutput = payment({
       redeem: { output: redeemScript },
     }).output;
-    if (!scriptPubKey.equals(redeemScriptOutput)) {
-      throw new Error(
-        `${paymentScriptName} for ${ioType} #${inputIndex} doesn't match the scriptPubKey in the prevout`,
+    const assetDataIndex = scriptPubKey.indexOf(script_1.OPS.OP_EVR_ASSET);
+    if (assetDataIndex !== -1) {
+      const baseScriptPubKey = scriptPubKey.slice(0, assetDataIndex);
+      const baseRedeemScriptOutput = redeemScriptOutput.slice(
+        0,
+        assetDataIndex,
       );
+      if (!baseScriptPubKey.equals(baseRedeemScriptOutput)) {
+        throw new Error(
+          `${paymentScriptName} for ${ioType} #${inputIndex} doesn't match the scriptPubKey in the prevout`,
+        );
+      }
+    } else {
+      if (!scriptPubKey.equals(redeemScriptOutput)) {
+        throw new Error(
+          `${paymentScriptName} for ${ioType} #${inputIndex} doesn't match the scriptPubKey in the prevout`,
+        );
+      }
     }
   };
 }
@@ -988,6 +1007,14 @@ function getHashForSig(inputIndex, input, cache, forValidate, sighashTypes) {
       prevout.value,
       sighashType,
     );
+  } else if (type === 'p2sh') {
+    const redeemScript = input.redeemScript;
+    if (!redeemScript) {
+      throw new Error(
+        `Input #${inputIndex} has p2sh script but no redeemScript`,
+      );
+    }
+    hash = unsignedTx.hashForSignature(inputIndex, redeemScript, sighashType);
   } else {
     // non-segwit
     if (
@@ -1401,8 +1428,8 @@ function pubkeyInScript(pubkey, script) {
 }
 function classifyScript(script) {
   if (isP2WPKH(script)) return 'witnesspubkeyhash';
-  if (isP2PKH(script)) return 'pubkeyhash';
   if (isP2MS(script)) return 'multisig';
+  if (isP2PKH(script)) return 'pubkeyhash';
   if (isP2PK(script)) return 'pubkey';
   return 'nonstandard';
 }

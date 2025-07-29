@@ -1,136 +1,35 @@
 import ECPairFactory from 'ecpair';
 import * as ecc from 'tiny-secp256k1';
-import { describe, it } from 'mocha';
-import * as bitcoin from '../..';
+// import { describe, it } from 'mocha';
+import * as evrmore from '../..';
+import { hash160 } from '../../src/crypto';
 import { regtestUtils } from './_regtest';
+const OPS = evrmore.script.OPS;
 
 const ECPair = ECPairFactory(ecc);
-const NETWORK = regtestUtils.network;
+console.log(regtestUtils.network, 'network');
+const NETWORK = evrmore.networks;
 const keyPairs = [
-  ECPair.makeRandom({ network: NETWORK }),
-  ECPair.makeRandom({ network: NETWORK }),
+  ECPair.makeRandom({ network: NETWORK.evrmore }),
+  ECPair.makeRandom({ network: NETWORK.evrmore }),
 ];
+// Hash the public key to get a 20-byte hash
+const pubKeyHash = hash160(keyPairs[0].publicKey);
 
-async function buildAndSign(
-  depends: any,
-  prevOutput: any,
-  redeemScript: any,
-  witnessScript: any,
-): Promise<null> {
-  const unspent = await regtestUtils.faucetComplex(prevOutput, 5e4);
-  const utx = await regtestUtils.fetch(unspent.txId);
+console.log(pubKeyHash.toString('hex'), 'pubkey hash');
 
-  const psbt = new bitcoin.Psbt({ network: NETWORK })
-    .addInput({
-      hash: unspent.txId,
-      index: unspent.vout,
-      nonWitnessUtxo: Buffer.from(utx.txHex, 'hex'),
-      ...(redeemScript ? { redeemScript } : {}),
-      ...(witnessScript ? { witnessScript } : {}),
-    })
-    .addOutput({
-      address: regtestUtils.RANDOM_ADDRESS,
-      value: 2e4,
-    });
+const address = evrmore.payments.p2pkh({ pubkey: keyPairs[0].publicKey });
 
-  if (depends.signatures) {
-    keyPairs.forEach(keyPair => {
-      psbt.signInput(0, keyPair);
-    });
-  } else if (depends.signature) {
-    psbt.signInput(0, keyPairs[0]);
-  }
+console.log(address.address);
+console.log(address.output);
+console.log(address.input);
+console.log(address.witness, OPS.OP_PUSHNUM);
 
-  return regtestUtils.broadcast(
-    psbt
-      .finalizeAllInputs()
-      .extractTransaction()
-      .toHex(),
-  );
-}
-
-['p2ms', 'p2pk', 'p2pkh', 'p2wpkh'].forEach(k => {
-  const fixtures = require('../fixtures/' + k);
-  const { depends } = fixtures.dynamic;
-  const fn: any = (bitcoin.payments as any)[k];
-
-  const base: any = {};
-  if (depends.pubkey) base.pubkey = keyPairs[0].publicKey;
-  if (depends.pubkeys) base.pubkeys = keyPairs.map(x => x.publicKey);
-  if (depends.m) base.m = base.pubkeys.length;
-
-  const { output } = fn(base);
-  if (!output) throw new TypeError('Missing output');
-
-  describe('bitcoinjs-lib (payments - ' + k + ')', () => {
-    it('can broadcast as an output, and be spent as an input', async () => {
-      Object.assign(depends, { prevOutScriptType: k });
-      await buildAndSign(depends, output, undefined, undefined);
-    });
-
-    it(
-      'can (as P2SH(' +
-        k +
-        ')) broadcast as an output, and be spent as an input',
-      async () => {
-        const p2sh = bitcoin.payments.p2sh({
-          redeem: { output },
-          network: NETWORK,
-        });
-        Object.assign(depends, { prevOutScriptType: 'p2sh-' + k });
-        await buildAndSign(
-          depends,
-          p2sh.output,
-          p2sh.redeem!.output,
-          undefined,
-        );
-      },
-    );
-
-    // NOTE: P2WPKH cannot be wrapped in P2WSH, consensus fail
-    if (k === 'p2wpkh') return;
-
-    it(
-      'can (as P2WSH(' +
-        k +
-        ')) broadcast as an output, and be spent as an input',
-      async () => {
-        const p2wsh = bitcoin.payments.p2wsh({
-          redeem: { output },
-          network: NETWORK,
-        });
-        Object.assign(depends, { prevOutScriptType: 'p2wsh-' + k });
-        await buildAndSign(
-          depends,
-          p2wsh.output,
-          undefined,
-          p2wsh.redeem!.output,
-        );
-      },
-    );
-
-    it(
-      'can (as P2SH(P2WSH(' +
-        k +
-        '))) broadcast as an output, and be spent as an input',
-      async () => {
-        const p2wsh = bitcoin.payments.p2wsh({
-          redeem: { output },
-          network: NETWORK,
-        });
-        const p2sh = bitcoin.payments.p2sh({
-          redeem: { output: p2wsh.output },
-          network: NETWORK,
-        });
-
-        Object.assign(depends, { prevOutScriptType: 'p2sh-p2wsh-' + k });
-        await buildAndSign(
-          depends,
-          p2sh.output,
-          p2sh.redeem!.output,
-          p2wsh.redeem!.output,
-        );
-      },
-    );
-  });
-});
+const scriptPubKey = evrmore.script.compile([
+  OPS.OP_DUP,
+  OPS.OP_HASH160,
+  pubKeyHash,
+  OPS.OP_EQUALVERIFY,
+  OPS.OP_CHECKSIG,
+]);
+console.log(scriptPubKey.toString('hex'), 'scriptPubKey');

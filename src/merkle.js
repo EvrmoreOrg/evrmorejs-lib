@@ -1,6 +1,6 @@
 'use strict';
 Object.defineProperty(exports, '__esModule', { value: true });
-exports.fastMerkleRoot = void 0;
+exports.fastMerkleRoot = fastMerkleRoot;
 function fastMerkleRoot(values, digestFn) {
   if (!Array.isArray(values)) throw TypeError('Expected values Array');
   if (typeof digestFn !== 'function')
@@ -19,4 +19,3 @@ function fastMerkleRoot(values, digestFn) {
   }
   return results[0];
 }
-exports.fastMerkleRoot = fastMerkleRoot;

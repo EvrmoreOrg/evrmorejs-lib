@@ -16,10 +16,11 @@ import { checkForInput, checkForOutput } from 'bip174/src/lib/utils';
 import { fromOutputScript, toOutputScript } from './address';
 import { cloneBuffer, reverseBuffer } from './bufferutils';
 import { hash160 } from './crypto';
-import { bitcoin as btcNetwork, Network } from './networks';
+import { evrmore as evrmoreNetwork, Network } from './networks';
 import * as payments from './payments';
 import * as bscript from './script';
 import { Output, Transaction } from './transaction';
+import { OPS } from './script';
 
 export interface TransactionInput {
   hash: string | Buffer;
@@ -55,13 +56,13 @@ const DEFAULT_OPTS: PsbtOpts = {
    * A bitcoinjs Network object. This is only used if you pass an `address`
    * parameter to addOutput. Otherwise it is not needed and can be left default.
    */
-  network: btcNetwork,
+  network: evrmoreNetwork,
   /**
    * When extractTransaction is called, the fee rate is checked.
    * THIS IS NOT TO BE RELIED ON.
    * It is only here as a last ditch effort to prevent sending a 500 BTC fee etc.
    */
-  maximumFeeRate: 5000, // satoshi per byte
+  maximumFeeRate: 2000, // satoshi per byte
 };
 
 /**
@@ -298,10 +299,10 @@ export class Psbt {
       );
     }
     checkInputsForPartialSig(this.data.inputs, 'addOutput');
-    const { address } = outputData as any;
+    const { address, asset } = outputData as any;
     if (typeof address === 'string') {
       const { network } = this.opts;
-      const script = toOutputScript(address, network);
+      const script = toOutputScript(address, network, asset);
       outputData = Object.assign(outputData, { script });
     }
     const c = this.__CACHE;
@@ -769,11 +770,13 @@ type PsbtOutputExtended = PsbtOutputExtendedAddress | PsbtOutputExtendedScript;
 interface PsbtOutputExtendedAddress extends PsbtOutput {
   address: string;
   value: number;
+  asset?: { name: string; amount: number };
 }
 
 interface PsbtOutputExtendedScript extends PsbtOutput {
   script: Buffer;
   value: number;
+  asset?: { name: string; amount: number };
 }
 
 interface HDSignerBase {
@@ -873,7 +876,7 @@ class PsbtTransaction implements ITransaction {
     this.tx.addInput(hash, input.index, input.sequence);
   }
 
-  addOutput(output: any): void {
+  addOutput(output: any, asset?: { name: string; amount: number }): void {
     if (
       (output as any).script === undefined ||
       (output as any).value === undefined ||
@@ -882,7 +885,12 @@ class PsbtTransaction implements ITransaction {
     ) {
       throw new Error('Error adding output.');
     }
-    this.tx.addOutput(output.script, output.value);
+
+    if (asset) {
+      this.tx.addOutput(output.script, output.value, asset);
+    } else {
+      this.tx.addOutput(output.script, output.value);
+    }
   }
 
   toBuffer(): Buffer {
@@ -1093,13 +1101,29 @@ function scriptCheckerFactory(
       redeem: { output: redeemScript },
     }).output as Buffer;
 
-    if (!scriptPubKey.equals(redeemScriptOutput)) {
-      throw new Error(
-        `${paymentScriptName} for ${ioType} #${inputIndex} doesn't match the scriptPubKey in the prevout`,
+    const assetDataIndex = scriptPubKey.indexOf(OPS.OP_EVR_ASSET);
+    if (assetDataIndex !== -1) {
+      const baseScriptPubKey = scriptPubKey.slice(0, assetDataIndex);
+      const baseRedeemScriptOutput = redeemScriptOutput.slice(
+        0,
+        assetDataIndex,
       );
+
+      if (!baseScriptPubKey.equals(baseRedeemScriptOutput)) {
+        throw new Error(
+          `${paymentScriptName} for ${ioType} #${inputIndex} doesn't match the scriptPubKey in the prevout`,
+        );
+      }
+    } else {
+      if (!scriptPubKey.equals(redeemScriptOutput)) {
+        throw new Error(
+          `${paymentScriptName} for ${ioType} #${inputIndex} doesn't match the scriptPubKey in the prevout`,
+        );
+      }
     }
   };
 }
+
 const checkRedeemScript = scriptCheckerFactory(payments.p2sh, 'Redeem script');
 const checkWitnessScript = scriptCheckerFactory(
   payments.p2wsh,
@@ -1293,7 +1317,6 @@ function getHashForSig(
     input.redeemScript,
     input.witnessScript,
   );
-
   if (['p2sh-p2wsh', 'p2wsh'].indexOf(type) >= 0) {
     hash = unsignedTx.hashForWitnessV0(
       inputIndex,
@@ -1311,6 +1334,14 @@ function getHashForSig(
       prevout.value,
       sighashType,
     );
+  } else if (type === 'p2sh') {
+    const redeemScript = input.redeemScript;
+    if (!redeemScript) {
+      throw new Error(
+        `Input #${inputIndex} has p2sh script but no redeemScript`,
+      );
+    }
+    hash = unsignedTx.hashForSignature(inputIndex, redeemScript, sighashType);
   } else {
     // non-segwit
     if (
@@ -1844,11 +1875,12 @@ type ScriptType =
   | 'pubkeyhash'
   | 'multisig'
   | 'pubkey'
+  | 'transfer_asset'
   | 'nonstandard';
 function classifyScript(script: Buffer): ScriptType {
   if (isP2WPKH(script)) return 'witnesspubkeyhash';
-  if (isP2PKH(script)) return 'pubkeyhash';
   if (isP2MS(script)) return 'multisig';
+  if (isP2PKH(script)) return 'pubkeyhash';
   if (isP2PK(script)) return 'pubkey';
   return 'nonstandard';
 }

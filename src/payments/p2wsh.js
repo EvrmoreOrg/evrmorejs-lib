@@ -1,6 +1,6 @@
 'use strict';
 Object.defineProperty(exports, '__esModule', { value: true });
-exports.p2wsh = void 0;
+exports.p2wsh = p2wsh;
 const bcrypto = require('../crypto');
 const networks_1 = require('../networks');
 const bscript = require('../script');
@@ -29,9 +29,9 @@ function chunkHasUncompressedPubkey(chunk) {
 }
 // input: <>
 // witness: [redeemScriptSig ...] {redeemScript}
-// output: OP_0 {sha256(redeemScript)}
+// output: OP_0 {sha256(redeemScript)} [OP_EVR_ASSET {asset metadata}]
 function p2wsh(a, opts) {
-  if (!a.address && !a.hash && !a.output && !a.redeem && !a.witness)
+  if (!a.address && !a.hash && !a.output && !a.redeem && !a.witness && !a.asset)
     throw new TypeError('Not enough data');
   opts = Object.assign({ validate: true }, opts || {});
   (0, types_1.typeforce)(
@@ -52,6 +52,7 @@ function p2wsh(a, opts) {
       witness: types_1.typeforce.maybe(
         types_1.typeforce.arrayOf(types_1.typeforce.Buffer),
       ),
+      asset: types_1.typeforce.maybe(types_1.typeforce.Object),
     },
     a,
   );
@@ -70,7 +71,7 @@ function p2wsh(a, opts) {
   });
   let network = a.network;
   if (!network) {
-    network = (a.redeem && a.redeem.network) || networks_1.bitcoin;
+    network = (a.redeem && a.redeem.network) || networks_1.evrmore;
   }
   const o = { network };
   lazy.prop(o, 'address', () => {
@@ -86,6 +87,21 @@ function p2wsh(a, opts) {
   });
   lazy.prop(o, 'output', () => {
     if (!o.hash) return;
+    const baseOutput = [OPS.OP_0, o.hash];
+    if (a.asset) {
+      const assetData = Buffer.concat([
+        Buffer.from([0x13]),
+        Buffer.from('65767274', 'hex'),
+        Buffer.from([a.asset.name.length]),
+        Buffer.from(a.asset.name, 'utf8'),
+        (() => {
+          const buffer = Buffer.alloc(8);
+          buffer.writeBigUInt64LE(BigInt(a.asset.amount));
+          return buffer;
+        })(),
+      ]);
+      return bscript.compile([...baseOutput, OPS.OP_EVR_ASSET, assetData]);
+    }
     return bscript.compile([OPS.OP_0, o.hash]);
   });
   lazy.prop(o, 'redeem', () => {
@@ -126,7 +142,6 @@ function p2wsh(a, opts) {
       nameParts.push(o.redeem.name);
     return nameParts.join('-');
   });
-  // extended validation
   if (opts.validate) {
     let hash = Buffer.from([]);
     if (a.address) {
@@ -209,4 +224,3 @@ function p2wsh(a, opts) {
   }
   return Object.assign(o, a);
 }
-exports.p2wsh = p2wsh;

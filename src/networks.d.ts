@@ -13,4 +13,7 @@ interface Bip32 {
 export declare const bitcoin: Network;
 export declare const regtest: Network;
 export declare const testnet: Network;
+export declare const evrmore: Network;
+export declare const evrmoreTestnet: Network;
+export declare const evrmoreRegtest: Network;
 export {};
